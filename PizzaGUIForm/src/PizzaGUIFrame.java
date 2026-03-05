@@ -12,7 +12,7 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
     double topping = 1;
     String selectedCrust;
     String[] crusts = {"Thin", "Regular", "Deep-Dish"};
-    String[] sizes = {"small","regular","large","super"};
+    String[] sizes = {"     ","small","regular","large","super"};
     double[] pricing = {8.00,12.00,16.00,20.00};
     double DDP = 2.50;
 
@@ -60,7 +60,7 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
         JPanel rcptPnl = new JPanel();
         JPanel lblrcptPnl = new JPanel();
         JPanel labelPnl = new JPanel();
-
+        JPanel toppinglbl = new JPanel();
 
         // --- Labels ---
         JLabel nameLbl = new JLabel("Nassar's Pizza", JLabel.CENTER);
@@ -78,10 +78,10 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
         crust.setFont(new Font("Arial", Font.BOLD, 16));
 
         // --- Add labels to panels ---
-        PizzaPnl.add(nameLbl);
+        labelPnl.add(nameLbl);
         rcptPnl.add(receiptLbl);
         sizePnl.add(size);
-        toppingPnl.add(toppings);
+        toppinglbl.add(toppings);
         crustPnl.add(crust);
         lblrcptPnl.add(receiptLbl);
 
@@ -97,7 +97,6 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
         crustPnl.add(thinCrust);
         crustPnl.add(regularCrust);
         crustPnl.add(deepDishCrust);
-
         // --- Add size combo box ---
         sizePnl.add(sizebox);
 
@@ -122,13 +121,16 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
         PizzaPnl.setLayout(new BoxLayout(PizzaPnl, BoxLayout.Y_AXIS));
         PizzaPnl.add(crustPnl);
         PizzaPnl.add(sizePnl);
+        PizzaPnl.add(toppinglbl);
         PizzaPnl.add(toppingPnl);
+
 
 
         // --- Add panels to frame ---
         add(finalBtnPnl, BorderLayout.SOUTH);
         add(rcptPnl, BorderLayout.EAST);
         add(PizzaPnl, BorderLayout.WEST);
+        add(labelPnl, BorderLayout.NORTH);
 
         // --- Add action listeners ---
         quitBtn.addActionListener(this);
@@ -146,17 +148,27 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e){
 
         if(e.getSource() == orderBtn){
-            
+            receipt.setText("");
+            boolean noTopping = true;
+            for(JCheckBox t : toppings){
+                if(t.isSelected()){ noTopping = false; }
+            }
+            if(sizebox.getSelectedIndex() == 0 || !thinCrust.isSelected() && !regularCrust.isSelected() && !deepDishCrust.isSelected() || noTopping){
+                JOptionPane.showMessageDialog(null, "Please select a size, crust, and at least one topping!");
+                return;
+            }
+
             subtotal = getFinalPrice();
-            if(total == 0){int invalid = JOptionPane.showConfirmDialog(null, "Please select a size, crust, and at least one topping", "Invalid Order", JOptionPane.OK_CANCEL_OPTION);}
+            tax = subtotal * .07;
+            total = subtotal + tax;
             receipt.setText("============================\n" +
                     "Size: " + sizebox.getSelectedItem() + "                    $" + getSizePrice() + "\n" +
                     "Crust: " + getCrust() + "                    $" + getCrustPrice() + "\n" +
                     "\n" +
-                    "Sub-total:                       $" + subtotal + "\n" +
-                    "Tax:                               $" + tax + "\n" +
+                    "Sub-total:                       $" + String.format("%.2f", subtotal) + "\n" +
+                    "Tax:                               $" + String.format("%.2f", tax) + "\n" +
                     "-----------------------------------------\n" +
-                    "Total:                             $" + total + "\n" +
+                    "Total:                             $" + String.format("%.2f", total) + "\n" +
                     "===========================");
 
         }
@@ -170,10 +182,15 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
             }
             sizebox.setSelectedIndex(0);
             getCrust();
+            thinCrust.setSelected(false);
+            regularCrust.setSelected(false);
+            deepDishCrust.setSelected(false);
         }
         if(e.getSource() == quitBtn){
-            System.exit(0);
-        }
+            int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?");
+            if(response == JOptionPane.YES_OPTION){
+                System.exit(0);
+            }        }
     }
 
     // HELPER METHODS
@@ -185,7 +202,7 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
     }
 
     private double getFinalPrice(){
-        int index = sizebox.getSelectedIndex();
+        int index = sizebox.getSelectedIndex() -1;
         double basePrice = pricing[index];
 
         if(getCrust().equals(crusts[2])){basePrice = pricing[index] + DDP;}
@@ -201,7 +218,7 @@ public class PizzaGUIFrame extends JFrame implements ActionListener {
         else { return 0.00; }
     }
     private double getSizePrice(){
-        int index = sizebox.getSelectedIndex();
+        int index = sizebox.getSelectedIndex() - 1;
         return pricing[index];
     }
 }
